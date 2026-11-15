@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Civil Service Reviewer</title>
+<style>
+:root{--bg:#f6f7fb;--card:#fff;--tx:#1b2433;--mut:#667085;--bd:#d9deea;--pri:#1f4fd8;--ok:#16794a;--okb:#e0f5ea;--no:#b42318;--nob:#fde8e6;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0f1420;--card:#18202f;--tx:#e8ecf5;--mut:#9aa6bd;--bd:#2b364b;--pri:#6c91ff;--ok:#5fd39a;--okb:#12362a;--no:#ff8a80;--nob:#3b1a18}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+.w{max-width:640px;margin:0 auto;padding:16px}
+h1{font-size:1.4rem;margin:8px 0 4px}
+.sub{color:var(--mut);margin:0 0 16px}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:14px;padding:18px;margin-bottom:14px}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0 16px}
+.chip{border:1px solid var(--bd);background:var(--card);color:var(--tx);border-radius:999px;padding:8px 14px;font-size:.9rem;cursor:pointer}
+.chip.on{background:var(--pri);border-color:var(--pri);color:#fff}
+.btn{display:block;width:100%;border:0;border-radius:12px;padding:14px;font-size:1rem;font-weight:600;background:var(--pri);color:#fff;cursor:pointer}
+.btn.sec{background:transparent;color:var(--pri);border:1px solid var(--pri);margin-top:10px}
+.bar{height:6px;background:var(--bd);border-radius:6px;overflow:hidden;margin:6px 0 14px}
+.bar i{display:block;height:100%;background:var(--pri);width:0}
+.top{display:flex;justify-content:space-between;color:var(--mut);font-size:.85rem}
+.q{font-size:1.1rem;font-weight:600;margin:6px 0 14px}
+.opt{display:flex;gap:10px;width:100%;text-align:left;border:2px solid var(--bd);background:var(--card);color:var(--tx);border-radius:12px;padding:13px;margin-bottom:10px;font-size:1rem;cursor:pointer}
+.opt b{min-width:1.4em;color:var(--mut)}
+.opt.ok{border-color:var(--ok);background:var(--okb)}
+.opt.no{border-color:var(--no);background:var(--nob)}
+.opt:disabled{cursor:default;color:var(--tx)}
+.ex{display:none;border-left:4px solid var(--pri);padding:8px 12px;margin:6px 0 14px;color:var(--mut)}
+.big{font-size:3rem;font-weight:700;text-align:center;margin:6px 0}
+.hide{display:none}
+</style>
+</head>
+<body>
+<div class="w">
+  <div id="home">
+    <h1>Civil Service Reviewer</h1>
+    <p class="sub" style="margin:0 0 6px;font-weight:600;color:var(--pri)">Made by Jelaica Baron</p>
+    <p class="sub">Professional level practice following the CSC syllabus. Tap an answer to see if you are right.</p>
+    <div class="card">
+      <b>Topics</b>
+      <div class="chips" id="cats"></div>
+      <b>Number of questions</b>
+      <div class="chips" id="cnt"></div>
+      <button class="btn" id="start">Start reviewing</button>
+    </div>
+    <p class="sub" id="info"></p>
+    <p class="sub" style="text-align:center;font-size:.85rem">Made by Jelaica Baron</p>
+  </div>
+
+  <div id="quiz" class="hide">
+    <div class="top"><span id="cat"></span><span id="pos"></span></div>
+    <div class="bar"><i id="fill"></i></div>
+    <div class="card">
+      <div class="q" id="qt"></div>
+      <div id="opts"></div>
+      <div class="ex" id="ex"></div>
+      <button class="btn hide" id="next">Next</button>
+    </div>
+    <div class="top"><span id="sc"></span><a href="#" id="quit" style="color:var(--mut)">Quit</a></div>
+  </div>
+
+  <div id="res" class="hide">
+    <div class="card">
+      <div class="big" id="pct"></div>
+      <p class="sub" style="text-align:center" id="msg"></p>
+      <button class="btn" id="again">Review again</button>
+      <button class="btn sec" id="wrong">Retry missed questions</button>
+      <button class="btn sec" id="menu">Back to topics</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// [category, question, [correct, ...wrong], explanation]
+const BANK=[
+["Vocabulary","Choose the synonym of EPHEMERAL.",["Short-lived","Eternal","Heavy","Bright"],"Ephemeral means lasting a very short time."],
+["Vocabulary","Choose the antonym of BENEVOLENT.",["Malevolent","Kind","Generous","Gentle"],"Benevolent means well-meaning; malevolent means wishing harm."],
+["Vocabulary","METICULOUS means:",["Extremely careful about details","Careless","Lazy","Quick-tempered"],"A meticulous person pays close attention to detail."],
+["Vocabulary","Choose the synonym of CANDID.",["Frank","Secretive","Rude","Shy"],"Candid means honest and straightforward."],
+["Vocabulary","Choose the antonym of SCARCE.",["Abundant","Rare","Limited","Few"],"Scarce means in short supply."],
+["Vocabulary","AMBIGUOUS means:",["Open to more than one meaning","Very clear","Very large","Easily broken"],"An ambiguous statement can be understood in different ways."],
+["Grammar","Neither of the candidates ___ qualified.",["is","are","were","have been"],"Neither is singular, so it takes a singular verb."],
+["Grammar","Choose the correct spelling.",["Accommodate","Accomodate","Acommodate","Accomadate"],"Accommodate has double c and double m."],
+["Grammar","She is the ___ of the two sisters.",["taller","tallest","more tall","most tall"],"Use the comparative when comparing two."],
+["Grammar","Each of the employees must submit ___ report on time.",["his or her","their own","our","its"],"Each is singular, so a singular pronoun is used."],
+["Grammar","Either the manager or the clerks ___ responsible.",["are","is","was","has been"],"The verb agrees with the nearer subject, clerks."],
+["Grammar","The committee ___ its decision yesterday.",["announced","announce","have announced","announcing"],"Past tense with a singular collective noun."],
+["Numerical","What is 15% of 240?",["36","32","40","24"],"0.15 × 240 = 36."],
+["Numerical","3/4 + 2/3 = ?",["17/12","5/7","5/12","7/12"],"9/12 + 8/12 = 17/12."],
+["Numerical","Two numbers are in the ratio 3:5 and their sum is 160. What is the larger number?",["100","60","80","96"],"160 ÷ 8 = 20, and 5 × 20 = 100."],
+["Numerical","Find the average of 12, 18, 24, 30 and 36.",["24","22","26","30"],"Sum is 120; 120 ÷ 5 = 24."],
+["Numerical","Ana finishes a job in 6 days, Ben in 12 days. How many days if they work together?",["4","9","5","3"],"1/6 + 1/12 = 3/12 = 1/4, so 4 days."],
+["Numerical","An item costs ₱800 with a 25% discount. What is the sale price?",["₱600","₱200","₱640","₱700"],"800 − 200 = 600."],
+["Numerical","Next number: 2, 6, 18, 54, ?",["162","108","144","216"],"Each term is multiplied by 3."],
+["Numerical","Simple interest on ₱5,000 at 4% for 3 years?",["₱600","₱200","₱500","₱650"],"5000 × 0.04 × 3 = 600."],
+["Analytical","All public servants must be honest. Ramon is a public servant. Therefore:",["Ramon must be honest","Ramon is not honest","Ramon is rich","Nothing can be concluded"],"Valid deduction from the two premises."],
+["Analytical","Doctor : Hospital :: Teacher : ?",["School","Student","Book","Chalk"],"A doctor works in a hospital; a teacher works in a school."],
+["Analytical","Next letter: A, C, F, J, ?",["O","N","M","P"],"Gaps grow by 1: +2, +3, +4, +5."],
+["Analytical","Which does not belong?",["Carrot","Mango","Apple","Banana"],"Carrot is a vegetable; the others are fruits."],
+["Analytical","Ana is taller than Ben. Ben is taller than Carl. Who is the shortest?",["Carl","Ben","Ana","Cannot be determined"],"Ana > Ben > Carl."],
+["Philippine Constitution & Laws","The Code of Conduct and Ethical Standards for Public Officials and Employees is:",["RA 6713","RA 3019","RA 7160","RA 9165"],"RA 6713 is the Code of Conduct. RA 3019 is the Anti-Graft law."],
+["Philippine Constitution & Laws","The Anti-Graft and Corrupt Practices Act is:",["RA 3019","RA 6713","RA 7160","RA 8293"],"RA 3019, enacted in 1960."],
+["Philippine Constitution & Laws","The Civil Service Commission is composed of a Chairman and how many Commissioners?",["Two","Three","Four","Five"],"Chairman plus two Commissioners (1987 Constitution, Art. IX-B)."],
+["Philippine Constitution & Laws","The term of the President of the Philippines is:",["Six years, no reelection","Four years, with reelection","Six years, with one reelection","Five years"],"Single six-year term."],
+["Philippine Constitution & Laws","Minimum age to be a Senator of the Philippines:",["35","30","40","25"],"At least 35 years old on election day."],
+["Philippine Constitution & Laws","The Bill of Rights is found in which Article of the 1987 Constitution?",["Article III","Article II","Article IV","Article VI"],"Article III is the Bill of Rights."],
+["Philippine Constitution & Laws","SALN stands for:",["Statement of Assets, Liabilities and Net Worth","Statement of Annual Local Needs","Summary of Assets and Local Notes","Schedule of Assets, Loans and Net income"],"Public officials must file a SALN under RA 6713."],
+["Philippine Constitution & Laws","Philippine Independence was proclaimed on:",["June 12, 1898","July 4, 1946","August 13, 1898","March 31, 1901"],"Proclaimed in Kawit, Cavite on June 12, 1898."],
+["Vocabulary","Synonym of DILIGENT.",["Hardworking","Lazy","Careless","Slow"],"Diligent means showing steady, careful effort."],
+["Vocabulary","Antonym of FRUGAL.",["Wasteful","Thrifty","Careful","Economical"],"Frugal means economical, so wasteful is the opposite."],
+["Vocabulary","OBSOLETE means:",["No longer in use","Brand new","Very valuable","Popular"],"Obsolete describes something outdated or no longer used."],
+["Vocabulary","Synonym of PRAGMATIC.",["Practical","Dreamy","Emotional","Stubborn"],"A pragmatic person focuses on what works in reality."],
+["Vocabulary","Antonym of TRANSPARENT.",["Opaque","Clear","Thin","Bright"],"Transparent means see-through; opaque blocks light."],
+["Vocabulary","VERBOSE means:",["Using too many words","Silent","Brief","Angry"],"Verbose speech or writing is wordy."],
+["Vocabulary","Synonym of RELUCTANT.",["Unwilling","Eager","Happy","Certain"],"Reluctant means hesitant or unwilling."],
+["Vocabulary","Antonym of EXPAND.",["Contract","Grow","Stretch","Enlarge"],"Expand means to grow bigger; contract means to shrink."],
+["Grammar","The news ___ shocking.",["was","were","are","have been"],"News is singular even though it ends in s."],
+["Grammar","Choose the correct sentence.",["I have been working here since 2020.","I am working here since 2020.","I work here since 2020.","I was working here since 2020 until now."],"Use present perfect continuous with since for an action that continues to now."],
+["Grammar","The new policy will ___ all employees.",["affect","effect","affects","effects"],"Affect is the verb (to influence); effect is usually a noun. After will, use the base form."],
+["Grammar","___ going to submit the report tomorrow.",["They’re","Their","There","Theyre"],"They’re = they are."],
+["Grammar","Between you and ___, the plan is risky.",["me","I","myself","mine"],"Use the object pronoun after a preposition."],
+["Grammar","The number of applicants ___ increasing.",["is","are","were","have been"],"The number of is singular; a number of is plural."],
+["Grammar","If I ___ you, I would accept the offer.",["were","was","am","will be"],"Use were for contrary-to-fact conditions."],
+["Grammar","Choose the correct spelling.",["Separate","Seperate","Seprate","Separete"],"Separate has an a after the p."],
+["Analytical","Next number: 1, 4, 9, 16, ?",["25","20","24","36"],"These are squares: 1², 2², 3², 4², so the next is 5² = 25."],
+["Analytical","Pen : Write :: Knife : ?",["Cut","Sharp","Kitchen","Metal"],"A pen is used to write; a knife is used to cut."],
+["Analytical","Which does not belong?",["Cube","Square","Circle","Triangle"],"Cube is three-dimensional; the others are flat shapes."],
+["Analytical","All birds have wings. A sparrow is a bird. Therefore:",["A sparrow has wings","A sparrow cannot fly","All winged animals are birds","No conclusion"],"The sparrow belongs to the group of birds, so it has wings."],
+["Analytical","Next number: 3, 6, 11, 18, 27, ?",["38","36","40","34"],"Differences are 3, 5, 7, 9, so the next difference is 11: 27 + 11 = 38."],
+["Analytical","If today is Wednesday, what day will it be 10 days from now?",["Saturday","Friday","Sunday","Thursday"],"10 ÷ 7 leaves 3, so Wednesday + 3 days = Saturday."],
+["Analytical","What is the angle between the clock hands at 3:00?",["90°","60°","120°","45°"],"Each hour mark is 30°, and 3 hours × 30° = 90°."],
+["Analytical","If CAT = 3120 (C=3, A=1, T=20), then DOG = ?",["4157","4167","3157","4147"],"D=4, O=15, G=7, so DOG = 4 15 7 = 4157."],
+["Philippine Constitution & Laws","RA 7160 is the:",["Local Government Code of 1991","Data Privacy Act","Anti-Graft Law","Code of Conduct for Public Officials"],"RA 7160 governs local government units."],
+["Philippine Constitution & Laws","RA 10173 is the:",["Data Privacy Act of 2012","Cybercrime Prevention Act","Ease of Doing Business Act","Anti-Red Tape Act"],"RA 10173 protects personal information."],
+["Philippine Constitution & Laws","RA 11032 is known as the:",["Ease of Doing Business and Efficient Government Service Delivery Act","Data Privacy Act","Local Government Code","Comprehensive Dangerous Drugs Act"],"RA 11032 (2018) amended the Anti-Red Tape Act."],
+["Philippine Constitution & Laws","RA 9165 is the:",["Comprehensive Dangerous Drugs Act of 2002","Anti-Graft Law","Data Privacy Act","Anti-Money Laundering Act"],"RA 9165 covers illegal drugs."],
+["Philippine Constitution & Laws","Article IX-B of the 1987 Constitution deals with the:",["Civil Service Commission","Commission on Elections","Commission on Audit","Judiciary"],"IX-A is common provisions, IX-B Civil Service, IX-C COMELEC, IX-D COA."],
+["Philippine Constitution & Laws","The term of a Senator is:",["Six years, up to two consecutive terms","Three years, up to three terms","Six years, no limit","Four years, up to two terms"],"Senators serve six years with a limit of two consecutive terms."],
+["Philippine Constitution & Laws","The term of a Member of the House of Representatives is:",["Three years, up to three consecutive terms","Six years, up to two terms","Four years, up to two terms","Three years, no limit"],"House members serve three years, maximum three consecutive terms."],
+["Philippine Constitution & Laws","How many Senators are there in the Philippines?",["24","12","20","30"],"The Senate has 24 members elected at large."],
+["Philippine Constitution & Laws","“Public office is a public trust” is found in which Article?",["Article XI","Article III","Article VII","Article IX"],"Article XI is Accountability of Public Officers."],
+["Philippine Constitution & Laws","The eight rays of the sun in the Philippine flag represent:",["The first eight provinces that revolted against Spain","The eight major islands","The eight national heroes","The eight regions"],"They stand for the first eight provinces placed under martial law by Spain."],
+["Philippine Constitution & Laws","The first President of the Philippines was:",["Emilio Aguinaldo","Manuel Quezon","Jose P. Laurel","Sergio Osmeña"],"Aguinaldo led the First Philippine Republic in 1899."],
+["Philippine Constitution & Laws","The writ of habeas corpus protects a person from:",["Illegal detention","Illegal search","Unfair taxation","Libel"],"It compels authorities to justify a person’s detention."],
+["General Information","The longest river in the Philippines is the:",["Cagayan River","Pasig River","Agusan River","Pampanga River"],"The Cagayan River in northern Luzon is the longest."],
+["General Information","The highest mountain in the Philippines is:",["Mount Apo","Mount Pulag","Mount Mayon","Mount Kanlaon"],"Mount Apo in Mindanao stands about 2,954 meters."],
+["General Information","The largest island in the Philippines is:",["Luzon","Mindanao","Samar","Palawan"],"Luzon is the largest; Mindanao is second."]
+];
+
+// Generated numerical questions, each with a worked solution
+(()=>{
+let sd=20260;const R=()=>(sd=(sd*1103515245+12345)%2147483648)/2147483648;
+const ri=(a,b)=>a+Math.floor(R()*(b-a+1)),pk=a=>a[Math.floor(R()*a.length)];
+const seen=new Set(BANK.map(b=>b[1])),peso=n=>"₱"+n.toLocaleString("en-US");
+const mk=(q,a,sol,f=x=>String(x))=>{if(seen.has(q))return;seen.add(q);const st=Math.max(1,Math.round(a/10)),w=[];for(const x of [a+st,a-st,a+2*st,a*2,a-2*st,a+3*st,Math.round(a/2)]){if(x>0&&x!==a&&!w.includes(x))w.push(x);if(w.length==3)break}BANK.push(["Numerical",q,[a,...w].map(x=>f(x)),sol])};
+const nm=["Ana","Ben","Carla","Dan","Ella","Fred","Gina","Hector"],tk=["finish a report","paint a wall","sort the files"];
+const wp=[[6,12],[10,15],[12,24],[20,30],[15,30],[18,9],[30,60],[24,8],[21,28],[14,35],[4,12],[45,90]];
+for(let n=0;n<45;n++){
+ const p=pk([5,10,15,20,25,30,35,40,45,60,75]),N=20*ri(3,60);
+ mk(`What is ${p}% of ${N}?`,p*N/100,`${p}% = ${p}/100. ${p}/100 × ${N} = ${p*N/100}.`);
+ const P=100*ri(4,60),d=pk([10,15,20,25,30,40]),dis=P*d/100;
+ mk(`A jacket priced at ${peso(P)} is sold with a ${d}% discount. What is the sale price?`,P-dis,`Discount = ${d}% × ${P} = ${dis}. Sale price = ${P} − ${dis} = ${P-dis}.`,peso);
+ const a=ri(1,7),b=ri(1,9),m=ri(2,20),S=(a+b)*m,L=Math.max(a,b);
+ if(a!==b)mk(`Two numbers are in the ratio ${a}:${b} and their sum is ${S}. What is the larger number?`,L*m,`Total parts = ${a} + ${b} = ${a+b}. One part = ${S} ÷ ${a+b} = ${m}. Larger = ${L} × ${m} = ${L*m}.`);
+ const av=ri(40,90),xs=[0,0,0,0].map(()=>av+ri(-15,15)),last=5*av-xs.reduce((u,v)=>u+v,0);
+ mk(`Find the average of ${[...xs,last].join(", ")}.`,av,`Sum = ${5*av}. Average = ${5*av} ÷ 5 = ${av}.`);
+ const [wa,wb]=pk(wp),x=nm[n%8],y=nm[(n+3)%8],t=pk(tk),wd=wa*wb/(wa+wb);
+ mk(`${x} can ${t} in ${wa} days while ${y} can do it in ${wb} days. Working together, how many days will they take?`,wd,`Combined rate = 1/${wa} + 1/${wb} = ${wa+wb}/${wa*wb} per day. Days = ${wa*wb}/${wa+wb} = ${wd}.`);
+ const IP=1000*ri(2,50),r=pk([3,4,5,6,8,10]),yr=ri(1,5),I=IP*r*yr/100;
+ mk(`Find the simple interest on ${peso(IP)} at ${r}% per year for ${yr} years.`,I,`I = P × r × t = ${IP} × ${r}% × ${yr} = ${I}.`,peso);
+ const sp=5*ri(6,18),h=ri(2,9),k=n%3;
+ if(k===0)mk(`A bus travels at ${sp} km/h for ${h} hours. How far does it go (km)?`,sp*h,`Distance = speed × time = ${sp} × ${h} = ${sp*h} km.`);
+ else if(k===1)mk(`A car covers ${sp*h} km in ${h} hours. What is its average speed (km/h)?`,sp,`Speed = distance ÷ time = ${sp*h} ÷ ${h} = ${sp} km/h.`);
+ else mk(`How many hours will it take to travel ${sp*h} km at ${sp} km/h?`,h,`Time = distance ÷ speed = ${sp*h} ÷ ${sp} = ${h} hours.`);
+ if(n%2===0){const s0=ri(1,30),df=ri(2,9),tm=[0,1,2,3].map(j=>s0+j*df);
+ mk(`Find the next number: ${tm.join(", ")}, ?`,s0+4*df,`The pattern adds ${df} each time. ${s0+3*df} + ${df} = ${s0+4*df}.`)}
+ else{const s0=ri(1,5),g=pk([2,3]),tm=[0,1,2,3].map(j=>s0*g**j);
+ mk(`Find the next number: ${tm.join(", ")}, ?`,s0*g**4,`The pattern multiplies by ${g} each time. ${s0*g**3} × ${g} = ${s0*g**4}.`)}
+ const C=100*ri(3,50),mu=pk([10,15,20,25,30,40,50]),pf=C*mu/100;
+ mk(`A seller buys an item for ${peso(C)} and sells it at a ${mu}% profit. What is the selling price?`,C+pf,`Profit = ${mu}% × ${C} = ${pf}. Selling price = ${C} + ${pf} = ${C+pf}.`,peso);
+ const c0=ri(3,60);
+ mk(`The sum of three consecutive integers is ${3*c0+3}. What is the smallest?`,c0,`Let the integers be n, n+1, n+2. Then 3n + 3 = ${3*c0+3}, so n = ${c0}.`);
+}
+})();
+
+// Questions matched to the CSC syllabus: [Subject · Subtopic, question, [correct, ...wrong], solution]
+BANK.push(
+['Verbal Ability · Sentence Completion','The manager praised the staff for their ___ in meeting the deadline.',['diligence','laziness','confusion','reluctance'],'Praise fits a positive quality, and diligence is the only positive choice.'],
+['Verbal Ability · Sentence Completion','She was tired; ___, she finished the report.',['nevertheless','therefore','because','for example'],'Nevertheless shows contrast between being tired and still finishing.'],
+['Verbal Ability · Sentence Completion','Not only is she intelligent, ___ she is also hardworking.',['but','and','or','so'],'The correlative pair is not only ... but also.'],
+['Verbal Ability · Sentence Completion','The report was so ___ that nobody understood it.',['confusing','clear','short','simple'],'Nobody understood it, so the report must have been confusing.'],
+['Verbal Ability · Sentence Completion','Ang mabuting lingkod-bayan ay ___ sa tungkulin.',['tapat','tamad','mayabang','pabaya'],'Ang mabuting lingkod-bayan ay tapat sa tungkulin.'],
+['Verbal Ability · Word Meaning','Kasingkahulugan ng DALUBHASA.',['Eksperto','Baguhan','Mag-aaral','Bisita'],'Ang dalubhasa ay taong bihasa o eksperto sa isang larangan.'],
+['Verbal Ability · Word Meaning','Kasalungat ng MASAYA.',['Malungkot','Masigla','Maligaya','Tuwang-tuwa'],'Ang kabaligtaran ng masaya ay malungkot.'],
+['Verbal Ability · Word Meaning','Kahulugan ng BALISA.',['Hindi mapakali','Masaya','Pagod','Gutom'],'Ang balisa ay nababahala o hindi mapakali.'],
+['Verbal Ability · Error Recognition','Find the error: Each of the students have submitted their requirements.',['have (should be has)','Each of the students','submitted','their requirements'],'Each is singular, so the verb should be has.'],
+['Verbal Ability · Error Recognition','Find the error: The books on the table is mine.',['is (should be are)','The books','on the table','mine'],'The subject books is plural, so use are.'],
+['Verbal Ability · Error Recognition','Alin ang tamang pangungusap?',['Umalis siya nang hindi nagpapaalam.','Umalis siya ng hindi nagpapaalam.','Umalis siya, ng hindi nagpapaalam.','Umalis ng siya hindi nagpapaalam.'],'Ang nang ang ginagamit na pangatnig sa kahulugang “without” o “noong”.'],
+['Verbal Ability · Sentence Structure','Choose the sentence with correct parallel structure.',['She likes reading, writing, and traveling.','She likes reading, writing, and to travel.','She likes to read, writing, and travel.','She likes read, write, and traveling.'],'Items in a series must have the same form: reading, writing, traveling.'],
+['Verbal Ability · Sentence Structure','Which is a complete sentence?',['The employees arrived early.','The employees who arrived early.','Arriving early at the office.','Because the employees arrived early.'],'A complete sentence needs a subject and a main verb that expresses a full thought.'],
+['Verbal Ability · Sentence Structure','Buuin ang pangungusap: sa bulwagan / nagtipon / ang mga empleyado / ay',['Ang mga empleyado ay nagtipon sa bulwagan.','Nagtipon ay sa bulwagan ang mga empleyado.','Sa bulwagan ay ang mga empleyado nagtipon.','Ay nagtipon ang sa bulwagan mga empleyado.'],'Ayos na karaniwan: paksa + ay + panaguri.'],
+['Verbal Ability · Paragraph Organization','Arrange: (1) Finally, submit the form at the window. (2) First, fill out the application form. (3) Next, attach the required documents.',['2-3-1','1-2-3','3-2-1','2-1-3'],'Signal words First, Next, Finally give the order 2, 3, 1.'],
+['Verbal Ability · Paragraph Organization','Arrange: (1) As a result, many commuters arrived late. (2) Heavy rain flooded major roads this morning. (3) Traffic came to a standstill.',['2-3-1','1-2-3','3-1-2','2-1-3'],'Cause (rain) comes first, then effect (traffic), then result (late arrivals).'],
+['Verbal Ability · Reading Comprehension','Passage: Public servants are expected to serve with integrity. They must place the public interest above personal gain and treat every citizen fairly, regardless of status. Question: Public servants must place ___ above personal gain.',['the public interest','their salary','their family','the rules'],'The passage says they must place the public interest above personal gain.'],
+['Verbal Ability · Reading Comprehension','Passage: Public servants are expected to serve with integrity. They must place the public interest above personal gain and treat every citizen fairly, regardless of status. Question: What is the main idea?',['Public servants must act with integrity and fairness.','Public servants earn low pay.','Citizens differ in status.','Personal gain is important.'],'The whole passage is about integrity and fairness in public service.'],
+['Verbal Ability · Reading Comprehension','Passage: Recycling reduces the garbage sent to landfills and conserves natural resources. When communities segregate waste at the source, collection becomes faster and more materials can be reused. Question: What happens when communities segregate waste at the source?',['Collection is faster and more materials are reused','Garbage increases','Landfills expand','Recycling stops'],'The passage states this directly in its second sentence.'],
+['Numerical Ability · Basic Operations','Evaluate: 8 + 6 × 3 − 4 ÷ 2',['24','19','26','22'],'PEMDAS: multiply and divide first. 8 + 18 − 2 = 24.'],
+['Numerical Ability · Basic Operations','Evaluate: (12 − 4) × 3 + 6',['30','36','18','24'],'Parentheses first: 8 × 3 = 24, then 24 + 6 = 30.'],
+['Numerical Ability · Basic Operations','0.6 × 0.5 = ?',['0.3','3','0.03','0.11'],'6 × 5 = 30, and two decimal places gives 0.30 = 0.3.'],
+['Numerical Ability · Basic Operations','1/2 ÷ 1/4 = ?',['2','1/8','1/2','4'],'Invert and multiply: 1/2 × 4/1 = 2.'],
+['Numerical Ability · Basic Operations','12.5 + 7.75 = ?',['20.25','19.25','20.75','21.25'],'Align decimals: 12.50 + 7.75 = 20.25.'],
+['Numerical Ability · Number Sequence','Next number: 2, 3, 5, 8, 12, ?',['17','16','18','15'],'Differences are 1, 2, 3, 4, so add 5: 12 + 5 = 17.'],
+['Numerical Ability · Number Sequence','Next number: 100, 91, 82, 73, ?',['64','63','65','62'],'Subtract 9 each time: 73 − 9 = 64.'],
+['Numerical Ability · Word Problems','Mario is twice as old as Nena. The sum of their ages is 36. How old is Nena?',['12','18','9','24'],'Let Nena = x. Then x + 2x = 36, so 3x = 36 and x = 12.'],
+['Numerical Ability · Word Problems','In 5 years, Ben will be 25. How old was he 3 years ago?',['17','22','20','15'],'Now he is 25 − 5 = 20. Three years ago: 20 − 3 = 17.'],
+['Numerical Ability · Word Problems','A salary of ₱20,000 is increased by 8%. What is the new salary?',['₱21,600','₱21,000','₱20,800','₱22,000'],'Increase = 8% × 20,000 = 1,600. New salary = 21,600.'],
+['Analytical Ability · Word Analogy','Hot : Cold :: Day : ?',['Night','Sun','Morning','Light'],'Hot and cold are opposites, and so are day and night.'],
+['Analytical Ability · Word Analogy','Bird : Nest :: Bee : ?',['Hive','Honey','Flower','Wing'],'A bird lives in a nest; a bee lives in a hive.'],
+['Analytical Ability · Symbolic Logic / Abstract Reasoning','If it rains, the meeting is cancelled. The meeting was not cancelled. Therefore:',['It did not rain','It rained','The meeting is later','No conclusion'],'If rain always leads to cancellation, no cancellation means no rain (contrapositive).'],
+['Analytical Ability · Identifying Assumptions & Drawing Conclusions','Some clerks are certified. All certified staff get a bonus. Which must be true?',['Some clerks get a bonus','All clerks get a bonus','No clerk gets a bonus','All staff are clerks'],'The certified clerks are in the bonus group, so some clerks get a bonus.'],
+['Analytical Ability · Identifying Assumptions & Drawing Conclusions','Statement: “Submit your application early to avoid long lines.” Which is an assumption?',['Long lines are expected near the deadline','Applications are free','Everyone submits early','Lines never form'],'The advice only makes sense if lines get long close to the deadline.'],
+['Analytical Ability · Data Interpretation','Sales (₱ thousand): Jan 40, Feb 55, Mar 45, Apr 60. Which month had the highest sales?',['April','February','March','January'],'60 is the largest value, which is April.'],
+['Analytical Ability · Data Interpretation','Sales (₱ thousand): Jan 40, Feb 55, Mar 45, Apr 60. What is the total for the four months?',['200','190','210','180'],'40 + 55 + 45 + 60 = 200.'],
+['Analytical Ability · Data Interpretation','Sales (₱ thousand): Jan 40, Feb 55, Mar 45, Apr 60. What is the increase from March to April?',['15','10','20','5'],'60 − 45 = 15.'],
+['Analytical Ability · Data Interpretation','Of 200 employees, 90 prefer coffee, 70 prefer tea, and 40 prefer juice. What percent prefer tea?',['35%','30%','40%','45%'],'70 ÷ 200 = 0.35 = 35%.'],
+['Analytical Ability · Data Interpretation','Of 200 employees, 90 prefer coffee, 70 prefer tea, and 40 prefer juice. How many more prefer coffee than juice?',['50','20','30','60'],'90 − 40 = 50.'],
+['General Information · R.A. No. 6713','How many norms of conduct are listed in RA 6713?',['Eight','Five','Six','Ten'],'Section 4 lists eight norms, from commitment to public interest to simple and modest living.'],
+['General Information · R.A. No. 6713','Which is NOT a norm of conduct under RA 6713?',['Commitment to profit','Professionalism','Political neutrality','Simple living'],'Commitment to public interest is a norm; commitment to profit is not.'],
+['General Information · R.A. No. 6713','Under RA 6713, officials who lead modest lives are practicing:',['Simple living','Professionalism','Nationalism','Political neutrality'],'Simple and modest living is one of the eight norms.'],
+['General Information · R.A. No. 6713','Acting promptly on letters and requests of the public shows:',['Responsiveness to the public','Political neutrality','Nationalism','Professionalism'],'This is the norm of responsiveness to the public.'],
+['General Information · R.A. No. 6713','The SALN must be filed on or before:',['April 30 of every year','December 31','January 15','June 30'],'RA 6713 requires annual filing on or before April 30.'],
+['General Information · Peace and Human Rights Issues and Concepts','The Universal Declaration of Human Rights was adopted in:',['1948','1945','1966','1987'],'The UN General Assembly adopted it on December 10, 1948.'],
+['General Information · Peace and Human Rights Issues and Concepts','The Commission on Human Rights is created under which Article of the 1987 Constitution?',['Article XIII','Article III','Article IX','Article XI'],'Article XIII (Social Justice and Human Rights) creates the CHR.'],
+['General Information · Peace and Human Rights Issues and Concepts','RA 9262 is the:',['Anti-Violence Against Women and Their Children Act','Magna Carta of Women','Anti-Trafficking in Persons Act','Safe Spaces Act'],'RA 9262 (2004) protects women and children from violence.'],
+['General Information · Peace and Human Rights Issues and Concepts','RA 9710 is the:',['Magna Carta of Women','Anti-Violence Against Women Act','Data Privacy Act','Special Protection of Children Act'],'RA 9710 (2009) is the Magna Carta of Women.'],
+['General Information · Peace and Human Rights Issues and Concepts','RA 7610 is the:',['Special Protection of Children Against Abuse, Exploitation and Discrimination Act','Magna Carta of Women','Juvenile Justice Act','Anti-Graft Law'],'RA 7610 protects children from abuse and exploitation.'],
+['General Information · Peace and Human Rights Issues and Concepts','International Humanitarian Law mainly governs:',['Conduct during armed conflict','Foreign trade','Elections','Environmental protection'],'IHL sets rules to limit suffering and protect civilians in war.'],
+['General Information · Peace and Human Rights Issues and Concepts','Which is a civil and political right?',['Right to vote','Right to education','Right to health','Right to housing'],'Voting is civil-political; the others are economic, social, and cultural rights.'],
+['General Information · Environment Management and Protection','RA 9003 is the:',['Ecological Solid Waste Management Act of 2000','Clean Water Act','Clean Air Act','Climate Change Act'],'RA 9003 requires waste segregation and recycling.'],
+['General Information · Environment Management and Protection','RA 9275 is the:',['Philippine Clean Water Act of 2004','Clean Air Act','Solid Waste Management Act','Climate Change Act'],'RA 9275 addresses water pollution.'],
+['General Information · Environment Management and Protection','RA 8749 is the:',['Philippine Clean Air Act of 1999','Clean Water Act','Solid Waste Management Act','Climate Change Act'],'RA 8749 addresses air pollution.'],
+['General Information · Environment Management and Protection','RA 9729 is the:',['Climate Change Act of 2009','Clean Air Act','Clean Water Act','Disaster Risk Reduction Act'],'RA 9729 created the Climate Change Commission.'],
+['General Information · Environment Management and Protection','The agency mainly responsible for environmental protection and natural resources is the:',['DENR','DOH','DOST','DPWH'],'The Department of Environment and Natural Resources.'],
+['General Information · Environment Management and Protection','PD 1586 established the:',['Environmental Impact Statement System','Protected Areas System','Solid Waste Board','Climate Change Commission'],'PD 1586 (1978) requires environmental impact statements for projects.'],
+['General Information · Environment Management and Protection','The 3Rs of waste management are:',['Reduce, Reuse, Recycle','Reduce, Repair, Resell','Reuse, Reject, Return','Recycle, Remove, Replace'],'Reduce, Reuse, Recycle.'],
+['General Information · Environment Management and Protection','RA 11038 is the:',['Expanded National Integrated Protected Areas System Act','Clean Air Act','Wildlife Act','Forestry Code'],'RA 11038 (2018) expanded the protected areas system.']
+);
+
+// Sort every question into a syllabus subject and subtopic
+BANK.forEach(b=>{const c=b[0],q=b[1];if(c.includes(' · '))return;const T=q+' '+b[2][0];
+b[0]=c==='Vocabulary'?'Verbal Ability · Word Meaning':c==='Grammar'?'Verbal Ability · Error Recognition':
+c==='Numerical'?'Numerical Ability · '+(/next number/i.test(q)?'Number Sequence':/^(What is \d|Find the average|The sum of three|\d)/.test(q)?'Basic Operations':'Word Problems'):
+c==='Analytical'?(/next (number|letter)/i.test(q)?'Numerical Ability · Number Sequence':/::/.test(q)?'Analytical Ability · Word Analogy':/Therefore|conclusion/i.test(q)?'Analytical Ability · Identifying Assumptions & Drawing Conclusions':'Analytical Ability · Symbolic Logic / Abstract Reasoning'):
+/6713|SALN/.test(T)?'General Information · R.A. No. 6713':/Constitution|Article|Senator|term of|Commission|habeas|Bill of Rights/i.test(T)?'General Information · Philippine Constitution':'General Information · Other Laws & History'});
+const $=id=>document.getElementById(id);
+const sh=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]]}return a};
+const cats=["All",...new Set(BANK.map(b=>b[0].split(" · ")[0])),...[...new Set(BANK.map(b=>b[0]))].sort()];
+let selCat="All",selCnt=10,deck=[],i=0,score=0,missed=[];
+
+function chips(el,vals,cur,cb){el.innerHTML="";vals.forEach(v=>{const b=document.createElement("button");b.className="chip"+(v===cur?" on":"");b.textContent=v===0?"All":v;b.onclick=()=>{cb(v);chips(el,vals,v,cb)};el.appendChild(b)})}
+function home(){$("info").textContent=BANK.length+" questions in the bank. Passing rate is 80%.";["quiz","res"].forEach(x=>$(x).classList.add("hide"));$("home").classList.remove("hide");
+ chips($("cats"),cats,selCat,v=>selCat=v);chips($("cnt"),[10,20,50,100,0],selCnt,v=>selCnt=v)}
+function begin(pool){deck=sh(pool);if(selCnt&&pool===BANK||selCnt&&pool.length>selCnt&&pool.fromHome)deck=deck.slice(0,selCnt);
+ i=0;score=0;missed=[];$("home").classList.add("hide");$("res").classList.add("hide");$("quiz").classList.remove("hide");show()}
+function show(){
+ const [c,q,o,e]=deck[i];
+ $("cat").textContent=c;$("pos").textContent=(i+1)+" / "+deck.length;
+ $("fill").style.width=(i/deck.length*100)+"%";$("sc").textContent="Score: "+score;
+ $("qt").textContent=q;$("ex").style.display="none";$("next").classList.add("hide");
+ $("next").textContent=i===deck.length-1?"See results":"Next";
+ const box=$("opts");box.innerHTML="";
+ sh(o.map((t,k)=>({t,ok:k===0}))).forEach((op,k)=>{
+  const b=document.createElement("button");b.className="opt";
+  b.innerHTML="<b>"+"ABCD"[k]+".</b><span></span>";b.lastChild.textContent=op.t;b.dataset.ok=op.ok?1:0;
+  b.onclick=()=>pick(b);box.appendChild(b)});
+}
+function pick(b){
+ const all=[...document.querySelectorAll(".opt")];
+ all.forEach(x=>{x.disabled=true;if(x.dataset.ok==="1")x.classList.add("ok")});
+ if(b.dataset.ok==="1")score++;else{b.classList.add("no");missed.push(deck[i])}
+ $("sc").textContent="Score: "+score;
+ $("ex").textContent="Solution: "+deck[i][3];$("ex").style.display="block";$("next").classList.remove("hide");
+}
+function finish(){
+ $("quiz").classList.add("hide");$("res").classList.remove("hide");
+ const p=Math.round(score/deck.length*100);
+ $("pct").textContent=p+"%";
+ $("msg").textContent=score+" of "+deck.length+" correct. "+(p>=80?"You are at passing level. Keep it up!":"The passing rate is 80%. Keep practicing!");
+ $("wrong").style.display=missed.length?"block":"none";
+}
+$("start").onclick=()=>{let pool=BANK.filter(b=>selCat==="All"||b[0].startsWith(selCat));pool=sh(pool);if(selCnt)pool=pool.slice(0,selCnt);begin2(pool)};
+function begin2(pool){deck=pool;i=0;score=0;missed=[];$("home").classList.add("hide");$("res").classList.add("hide");$("quiz").classList.remove("hide");show()}
+$("next").onclick=()=>{i++;i>=deck.length?finish():show()};
+$("again").onclick=()=>$("start").onclick();
+$("wrong").onclick=()=>begin2(sh(missed));
+$("menu").onclick=home;
+$("quit").onclick=e=>{e.preventDefault();home()};
+home();
+</script>
+</body>
+</html>
